@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Journey Fluid Simulation</title>
+    <link rel="stylesheet" href="style.css">
+    </div>
+    <div class="stat-card">
+        <div class="label">Conversion Rate</div>
+        <div class="value" id="conversionRate">0.0%</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Revenue (Est)</div>
+        <div class="value" id="revenue">$0</div>
+    </div>
+    </div>
+
+    <div class="controls-panel">
+        <h3>Traffic Sources</h3>
+        <div class="control-group" style="display: none;">
+            <label>
+                <span class="color-dot" style="background: #4285F4;"></span> Google Ads
+                <input type="range" id="googleSlider" min="0" max="100" value="50">
+            </label>
+            <label>
+                <span class="color-dot" style="background: #EA4335;"></span> Direct
+                <input type="range" id="directSlider" min="0" max="100" value="30">
+            </label>
+            <label>
+                <span class="color-dot" style="background: #FBBC05;"></span> Social
+                <input type="range" id="socialSlider" min="0" max="100" value="20">
+            </label>
+        </div>
+
+        <h3>Segmentation</h3>
+        <select id="segmentSelect" class="dropdown">
+            <option value="source">Color by Source</option>
+            <option value="device">Color by Device</option>
+            <option value="geo">Color by Geo</option>
+            <option value="type">Color by User Type</option>
+        </select>
+    </div>
+    </div>
+
+    <div class="ai-panel">
+        <div class="ai-header">
+            <span class="ai-icon">✨</span> AI Analyst
+            <span class="ai-status">Scanning...</span>
+
+</html>
