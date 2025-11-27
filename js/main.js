@@ -8,6 +8,8 @@ import { MonthlyDataService } from './MonthlyDataService.js';
 import { SalesOverlay } from './SalesOverlay.js';
 import { PathRenderer } from './PathRenderer.js';
 import { MetricsTracker } from './MetricsTracker.js';
+import { PropertyManager } from './PropertyManager.js';
+import { DataVerifier } from './DataVerifier.js';
 
 const canvas = document.getElementById('simCanvas');
 const ctx = canvas.getContext('2d');
@@ -40,6 +42,8 @@ const monthlyDataService = new MonthlyDataService();
 const salesOverlay = new SalesOverlay('salesOverlay');
 const pathRenderer = new PathRenderer();
 const metricsTracker = new MetricsTracker();
+const propertyManager = new PropertyManager();
+const dataVerifier = new DataVerifier('verificationContent');
 
 // --- Initialization ---
 function resize() {
@@ -263,3 +267,56 @@ monthlyDataService.fetchMonthlyData().then(result => {
 });
 
 setTimeout(runAIAnalysis, 2000);
+
+// Initialize Property Selector
+async function initPropertySelector() {
+    const propertySelect = document.getElementById('propertySelect');
+    const verifyBtn = document.getElementById('verifyBtn');
+
+    // Load properties
+    await propertyManager.loadProperties();
+    const properties = propertyManager.getProperties();
+
+    // Populate dropdown
+    propertySelect.innerHTML = '';
+    properties.forEach(prop => {
+        const option = document.createElement('option');
+        option.value = prop.id;
+        option.textContent = `${prop.name} (${prop.id})`;
+        if (prop.id === propertyManager.getCurrentProperty()?.id) {
+            option.selected = true;
+        }
+        propertySelect.appendChild(option);
+    });
+
+    // Property change handler
+    propertySelect.addEventListener('change', (e) => {
+        const propertyId = e.target.value;
+        propertyManager.selectProperty(propertyId);
+        // Reload data for new property
+        dataService.fetchLiveData(nodes, nodesMap);
+        monthlyDataService.fetchMonthlyData().then(result => {
+            salesOverlay.render(result);
+            if (result.success && result.data) {
+                pathRenderer.setMonthlyData(result.data);
+                metricsTracker.updateMonthlyMetrics(result.data);
+            }
+        });
+    });
+
+    // Verify button handler
+    verifyBtn.addEventListener('click', async () => {
+        const currentProperty = propertyManager.getCurrentProperty();
+        if (!currentProperty) return;
+
+        // Show verification overlay
+        const overlay = document.getElementById('verificationOverlay');
+        overlay.style.display = 'block';
+
+        // Run verification
+        const verificationData = await dataVerifier.verifyProperty(currentProperty.id);
+        dataVerifier.render(verificationData);
+    });
+}
+
+initPropertySelector();

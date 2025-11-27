@@ -4,49 +4,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Journey Fluid Simulation</title>
+    <title>Live Analytics Dashboard</title>
     <link rel="stylesheet" href="style.css">
-    </div>
-    <div class="stat-card">
-        <div class="label">Conversion Rate</div>
-        <div class="value" id="conversionRate">0.0%</div>
-    </div>
-    <div class="stat-card">
-        <div class="label">Revenue (Est)</div>
-        <div class="value" id="revenue">$0</div>
-    </div>
-    </div>
+    <link rel="stylesheet" href="property-selector.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
 
-    <div class="controls-panel">
-        <h3>Traffic Sources</h3>
-        <div class="control-group" style="display: none;">
-            <label>
-                <span class="color-dot" style="background: #4285F4;"></span> Google Ads
-                <input type="range" id="googleSlider" min="0" max="100" value="50">
-            </label>
-            <label>
-                <span class="color-dot" style="background: #EA4335;"></span> Direct
-                <input type="range" id="directSlider" min="0" max="100" value="30">
-            </label>
-            <label>
-                <span class="color-dot" style="background: #FBBC05;"></span> Social
-                <input type="range" id="socialSlider" min="0" max="100" value="20">
-            </label>
+<body>
+    <canvas id="simCanvas"></canvas>
+
+    <div class="ui-overlay">
+        <div class="header">
+            <h1>Live User Flow</h1>
+            <div class="property-selector">
+                <label for="propertySelect">🌐 Property:</label>
+                <select id="propertySelect" class="property-dropdown">
+                    <option value="">Loading...</option>
+                </select>
+                <button id="verifyBtn" class="verify-button">🔍 Verify</button>
+            </div>
+            <div class="status-row">
+                <div class="status-indicator"><span class="dot"
+                        style="background:#00C853; box-shadow: 0 0 10px #00C853;"></span> Live Data (Active)</div>
+                <div class="refresh-timer">
+                    <span class="timer-label">Next Update:</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="refreshProgress"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <h3>Segmentation</h3>
-        <select id="segmentSelect" class="dropdown">
-            <option value="source">Color by Source</option>
-            <option value="device">Color by Device</option>
-            <option value="geo">Color by Geo</option>
-            <option value="type">Color by User Type</option>
-        </select>
-    </div>
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="label">Active Users</div>
+                <div class="value" id="activeUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Conversion Rate</div>
+                <div class="value" id="conversionRate">0.0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Revenue (Est)</div>
+                <div class="value" id="revenue">$0</div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <h3>Traffic Sources</h3>
+            <div class="control-group" style="display: none;">
+                <label>
+                    <span class="color-dot" style="background: #4285F4;"></span> Google Ads
+                    <input type="range" id="googleSlider" min="0" max="100" value="50">
+                </label>
+                <label>
+                    <span class="color-dot" style="background: #EA4335;"></span> Direct
+                    <input type="range" id="directSlider" min="0" max="100" value="30">
+                </label>
+                <label>
+                    <span class="color-dot" style="background: #FBBC05;"></span> Social
+                    <input type="range" id="socialSlider" min="0" max="100" value="20">
+                </label>
+            </div>
+
+            <h3>Segmentation</h3>
+            <select id="segmentSelect" class="dropdown">
+                <option value="source">Color by Source</option>
+                <option value="device">Color by Device</option>
+                <option value="geo">Color by Geo</option>
+                <option value="type">Color by User Type</option>
+            </select>
+        </div>
     </div>
 
     <div class="ai-panel">
         <div class="ai-header">
             <span class="ai-icon">✨</span> AI Analyst
             <span class="ai-status">Scanning...</span>
+        </div>
+        <div class="ai-content" id="aiContent">
+            <div class="ai-line">Initializing analysis engine...</div>
+        </div>
+    </div>
+
+    <div class="sales-overlay" id="salesOverlay">
+        <div class="overlay-header">
+            <h3>📊 Monthly Sales Statistics</h3>
+            <button class="overlay-toggle"
+                onclick="document.getElementById('salesOverlay').classList.toggle('collapsed')">−</button>
+        </div>
+        <div class="overlay-content">
+            <div id="salesTables">Loading...</div>
+        </div>
+    </div>
+
+    <div class="verification-overlay" id="verificationOverlay" style="display: none;">
+        <div class="overlay-header">
+            <h3>🔍 Data Verification</h3>
+            <button class="overlay-toggle"
+                onclick="document.getElementById('verificationOverlay').style.display='none'">×</button>
+        </div>
+        <div class="overlay-content">
+            <div id="verificationContent">Loading...</div>
+        </div>
+    </div>
+
+    <div class="funnel-panel" id="funnelPanel">
+        <!-- Funnel content will be rendered here by FunnelPanel.js -->
+    </div>
+
+    <div id="tooltip" class="tooltip" style="display: none;"></div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
 
 </html>

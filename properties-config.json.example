@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "id": "YOUR_PROPERTY_ID",
+      "name": "Your Website Name",
+      "domain": "example.com",
+      "bigQueryDataset": "analytics_XXXXXXXXX",
+      "bigQueryProjectId": "your-bigquery-project",
+      "serviceAccountKeyFile": "your-service-account-key.json",
+      "enabled": true
+    }
+  ]
+}
