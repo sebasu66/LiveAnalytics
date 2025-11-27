@@ -46,10 +46,10 @@ export class DataService {
         const topPages = sortedPages.slice(0, 15).map(p => p[0]);
         const otherPagesCount = sortedPages.slice(15).reduce((acc, curr) => acc + curr[1], 0);
 
-        // 3. Rebuild Nodes (Keep Sources, Reset Pages)
+        // 3. Rebuild Nodes (Keep Sources and Funnel Nodes, Reset Page Nodes)
         nodes.length = 0;
         Object.keys(nodesMap).forEach(key => {
-            if (nodesMap[key].type === 'source') {
+            if (nodesMap[key].type === 'source' || nodesMap[key].type === 'funnel') {
                 nodes.push(nodesMap[key]);
             } else {
                 delete nodesMap[key];

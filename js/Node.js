@@ -38,29 +38,55 @@ export class Node {
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // LOD 2: Labels & Basic Stats (Zoom > 0.5)
-        if (zoom > 0.5) {
-            ctx.fillStyle = COLORS.nodeText;
-            ctx.font = '16px Inter';
-            ctx.textAlign = 'center';
+        // Labels - Always visible with better contrast
+        ctx.textAlign = 'center';
 
-            // Adjust label position for squares
-            const offset = this.type === 'step' ? 25 : this.radius + 30;
+        // Adjust label position for squares vs circles
+        const offset = this.type === 'step' ? 25 : this.radius + 30;
 
-            // Show FULL label if zoomed in, otherwise truncate
-            let labelText = this.label;
-            if (zoom < 1.0 && labelText.length > 20) {
-                labelText = labelText.substring(0, 17) + '...';
-            }
+        // Show FULL label if zoomed in, otherwise truncate
+        let labelText = this.label;
+        if (zoom < 1.0 && labelText.length > 20) {
+            labelText = labelText.substring(0, 17) + '...';
+        }
 
-            ctx.fillText(labelText, this.x, this.y + offset);
+        // Measure text for background box
+        ctx.font = 'bold 18px Inter';
+        const textMetrics = ctx.measureText(labelText);
+        const textWidth = textMetrics.width;
+        const textHeight = 20;
+        const padding = 8;
 
-            if (this.type === 'step') {
-                // Count INSIDE the node
-                ctx.fillStyle = '#000'; // Black text for contrast
-                ctx.font = 'bold 12px Inter';
-                ctx.fillText(this.visits, this.x, this.y + 4);
-            }
+        // Draw background box for label
+        const boxX = this.x - textWidth / 2 - padding;
+        const boxY = this.y + offset - textHeight;
+        const boxWidth = textWidth + padding * 2;
+        const boxHeight = textHeight + padding;
+
+        ctx.fillStyle = 'rgba(15, 17, 26, 0.85)';
+        ctx.strokeStyle = this.baseColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw label text
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(labelText, this.x, this.y + offset);
+
+        // Show visit count inside funnel nodes
+        if (this.type === 'funnel' && this.visits > 0) {
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 14px Inter';
+            ctx.fillText(this.visits, this.x, this.y + 5);
+        }
+
+        // Show visit count for source nodes
+        if (this.type === 'source' && this.visits > 0) {
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 12px Inter';
+            ctx.fillText(this.visits, this.x, this.y + 4);
         }
 
         // LOD 3: Deep Details (Zoom > 1.5)

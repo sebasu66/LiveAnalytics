@@ -5,3 +5,4 @@ error.log
 .DS_Store
 *.serviceAccountKey.json
 properties-config.json
+debug.config.json

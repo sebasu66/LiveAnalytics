@@ -61,6 +61,12 @@ function initNodes() {
         nodes.push(node);
         nodesMap[node.id] = node;
     });
+
+    console.log('Nodes initialized:', {
+        totalNodes: nodes.length,
+        nodeIds: Object.keys(nodesMap),
+        funnelNodes: Object.keys(nodesMap).filter(id => id.includes('product') || id.includes('cart') || id.includes('checkout') || id.includes('purchase'))
+    });
 }
 
 function updateStats() {
@@ -116,6 +122,52 @@ function updateTimers() {
     }
 }
 
+// Draw background grid for spatial context
+function drawGrid(ctx, camera) {
+    const gridSize = 200;
+    const gridColor = 'rgba(255, 255, 255, 0.05)';
+    const majorGridColor = 'rgba(255, 255, 255, 0.1)';
+
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+
+    // Calculate visible area
+    const startX = Math.floor(-camera.x / camera.zoom / gridSize) * gridSize - gridSize;
+    const endX = Math.ceil((canvas.width - camera.x) / camera.zoom / gridSize) * gridSize + gridSize;
+    const startY = Math.floor(-camera.y / camera.zoom / gridSize) * gridSize - gridSize;
+    const endY = Math.ceil((canvas.height - camera.y) / camera.zoom / gridSize) * gridSize + gridSize;
+
+    // Draw vertical lines
+    for (let x = startX; x <= endX; x += gridSize) {
+        if (x % (gridSize * 5) === 0) {
+            ctx.strokeStyle = majorGridColor;
+            ctx.lineWidth = 2;
+        } else {
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+        }
+        ctx.beginPath();
+        ctx.moveTo(x, startY);
+        ctx.lineTo(x, endY);
+        ctx.stroke();
+    }
+
+    // Draw horizontal lines
+    for (let y = startY; y <= endY; y += gridSize) {
+        if (y % (gridSize * 5) === 0) {
+            ctx.strokeStyle = majorGridColor;
+            ctx.lineWidth = 2;
+        } else {
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+        }
+        ctx.beginPath();
+        ctx.moveTo(startX, y);
+        ctx.lineTo(endX, y);
+        ctx.stroke();
+    }
+}
+
 // Performance optimization: Throttle to 30fps instead of 60fps
 let lastFrameTime = 0;
 const targetFPS = 30;
@@ -140,6 +192,9 @@ function animate(currentTime = 0) {
     ctx.save();
     ctx.translate(camera.x, camera.y);
     ctx.scale(camera.zoom, camera.zoom);
+
+    // Draw grid for spatial context
+    drawGrid(ctx, camera);
 
     // Draw E-commerce Funnel Connections using PathRenderer
     pathRenderer.draw(ctx, nodesMap, camera);

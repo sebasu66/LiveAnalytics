@@ -1,0 +1,8 @@
+{
+  "debugMode": true,
+  "autoLoadKey": true,
+  "defaultKeyFile": "your-service-account-key.json",
+  "defaultPropertyId": "123456789",
+  "defaultDataset": "analytics_123456789",
+  "_comment": "Copy this file to debug.config.json and update with your values"
+}

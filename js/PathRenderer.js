@@ -12,6 +12,15 @@ export class PathRenderer {
     draw(ctx, nodesMap, camera) {
         ctx.lineCap = 'round';
 
+        // Debug: Log once every 100 frames
+        if (Math.random() < 0.01) {
+            console.log('PathRenderer.draw called', {
+                connectionsCount: Object.keys(CONNECTIONS).length,
+                nodesMapKeys: Object.keys(nodesMap),
+                hasMonthlyData: !!this.monthlyData
+            });
+        }
+
         // Draw connections based on CONNECTIONS config
         Object.keys(CONNECTIONS).forEach(sourceId => {
             const conn = CONNECTIONS[sourceId];
@@ -22,6 +31,11 @@ export class PathRenderer {
 
             if (s && t) {
                 this.drawPath(ctx, s, t, conn, camera);
+            } else if (Math.random() < 0.01) {
+                console.warn('Missing nodes for connection:', sourceId, '->', conn.target, {
+                    hasSource: !!s,
+                    hasTarget: !!t
+                });
             }
         });
     }
