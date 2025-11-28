@@ -454,16 +454,70 @@ canvas:active {
 
 .row-bar {
     height: 100%;
-    background: linear-gradient(90deg, #4facfe, #00f2fe);
-    border-radius: 4px;
-    transition: width 0.5s ease-out;
+    left: 20px;
+    z-index: 10;
+    background: rgba(20, 25, 40, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px 30px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
 }
 
-.row-value {
-    position: absolute;
-    right: 6px;
-    font-size: 10px;
-    color: #fff;
+.canvas-header .header-left h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.canvas-header .header-subtitle {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Info Blocks in Header */
+.info-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 14px;
+    color: #ffffff;
     font-weight: 600;
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    font-family: 'Roboto Mono', monospace;
 }

@@ -19,14 +19,24 @@ A **3-level zoom Sankey diagram** that visualizes user journeys from traffic sou
 
 ### 1. Start Both Servers
 
+**New!** Use the provided PowerShell scripts for one-click start/stop:
+
+```powershell
+# In project root (c:\DEV\live analytics)
+.\start-project.ps1   # Starts both servers in new terminals
+.\stop-project.ps1    # Kills both servers safely
+```
+
+**Manual (Legacy):**
+
 **Terminal 1 - Backend:**
-```bash
+```powershell
 cd "c:\DEV\live analytics"
 npm start
 ```
 
 **Terminal 2 - Frontend:**
-```bash
+```powershell
 cd "c:\DEV\live analytics\client"
 npm run dev
 ```

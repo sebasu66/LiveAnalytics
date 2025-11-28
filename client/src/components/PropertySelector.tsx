@@ -36,8 +36,8 @@ export const PropertySelector: React.FC<PropertySelectorProps> = ({
     }, [properties, datasets]);
 
     const handleContinue = () => {
-        if (selectedProperty && selectedDataset) {
-            onSelect(selectedProperty, selectedDataset);
+        if (selectedProperty) {
+            onSelect(selectedProperty, selectedDataset || '');
         }
     };
 
@@ -46,7 +46,7 @@ export const PropertySelector: React.FC<PropertySelectorProps> = ({
             <h2>Select Your Data Source</h2>
 
             <div className="selector-group">
-                <label>GA4 Property</label>
+                <label>GA4 Property *</label>
                 <select
                     value={selectedProperty}
                     onChange={(e) => setSelectedProperty(e.target.value)}
@@ -64,27 +64,28 @@ export const PropertySelector: React.FC<PropertySelectorProps> = ({
             </div>
 
             <div className="selector-group">
-                <label>BigQuery Dataset</label>
+                <label>BigQuery Dataset (Optional)</label>
                 <select
                     value={selectedDataset}
                     onChange={(e) => setSelectedDataset(e.target.value)}
                     className="selector-dropdown"
                 >
-                    {datasets.length === 0 && (
-                        <option>No datasets found</option>
-                    )}
+                    <option value="">None - Use GA4 Data API only</option>
                     {datasets.map(d => (
                         <option key={d.id} value={d.id}>
                             {d.id} ({d.location})
                         </option>
                     ))}
                 </select>
+                {datasets.length === 0 && (
+                    <small className="helper-text">No BigQuery datasets found. Dashboard will use GA4 Data API.</small>
+                )}
             </div>
 
             <button
                 className="continue-btn"
                 onClick={handleContinue}
-                disabled={!selectedProperty || !selectedDataset}
+                disabled={!selectedProperty}
             >
                 Continue to Dashboard
             </button>

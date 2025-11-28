@@ -109,6 +109,7 @@ app.post('/api/upload-key', upload.single('keyFile'), async (req, res) => {
             credentials: keyJson,
             scopes: [
                 'https://www.googleapis.com/auth/analytics.readonly',
+                'https://www.googleapis.com/auth/analytics.edit', // Required for Admin API
                 'https://www.googleapis.com/auth/bigquery.readonly'
             ]
         });
@@ -219,6 +220,7 @@ app.get('/api/debug-auto-login', async (req, res) => {
             credentials: keyJson,
             scopes: [
                 'https://www.googleapis.com/auth/analytics.readonly',
+                'https://www.googleapis.com/auth/analytics.edit', // Required for Admin API
                 'https://www.googleapis.com/auth/bigquery.readonly'
             ]
         });
@@ -311,48 +313,93 @@ app.post('/api/start-historical-job', async (req, res) => {
 
         // Use provided dataset ID or fallback to convention
         let datasetId = providedDatasetId || `analytics_${propertyId}`;
+        let rows = [];
+        let usedBigQuery = false;
 
-        // Construct BigQuery SQL
-        const query = `
-            WITH session_data AS (
-                SELECT
-                    user_pseudo_id,
-                    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') as session_id,
-                    MAX((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source')) as source,
-                    MAX((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'medium')) as medium,
-                    ARRAY_AGG(
-                        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') 
-                        ORDER BY event_timestamp ASC LIMIT 1
-                    )[OFFSET(0)] as landing_page
-                FROM \`${projectId}.${datasetId}.events_*\`
-                WHERE _TABLE_SUFFIX BETWEEN '${startDate.replace(/-/g, '')}' AND '${endDate.replace(/-/g, '')}'
-                GROUP BY user_pseudo_id, session_id
-            )
-            SELECT
-                source,
-                medium,
-                landing_page,
-                COUNT(*) as session_count
-            FROM session_data
-            WHERE landing_page IS NOT NULL
-            GROUP BY 1, 2, 3
-            ORDER BY 4 DESC
-            LIMIT 100
-        `;
+        // Try BigQuery if dataset is provided
+        if (providedDatasetId) {
+            try {
+                // Construct BigQuery SQL
+                const query = `
+                    WITH session_data AS (
+                        SELECT
+                            user_pseudo_id,
+                            (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') as session_id,
+                            MAX((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source')) as source,
+                            MAX((SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'medium')) as medium,
+                            ARRAY_AGG(
+                                (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') 
+                                ORDER BY event_timestamp ASC LIMIT 1
+                            )[OFFSET(0)] as landing_page
+                        FROM \`${projectId}.${datasetId}.events_*\`
+                        WHERE _TABLE_SUFFIX BETWEEN '${startDate.replace(/-/g, '')}' AND '${endDate.replace(/-/g, '')}'
+                        GROUP BY user_pseudo_id, session_id
+                    )
+                    SELECT
+                        source,
+                        medium,
+                        landing_page,
+                        COUNT(*) as session_count
+                    FROM session_data
+                    WHERE landing_page IS NOT NULL
+                    GROUP BY 1, 2, 3
+                    ORDER BY 4 DESC
+                    LIMIT 100
+                `;
 
-        console.log('Executing BigQuery query for property:', propertyId);
+                console.log('Executing BigQuery query for property:', propertyId);
 
-        // Run BigQuery Job
-        const response = await bq.jobs.query({
-            projectId: projectId,
-            requestBody: {
-                query: query,
-                useLegacySql: false
+                // Run BigQuery Job
+                const response = await bq.jobs.query({
+                    projectId: projectId,
+                    requestBody: {
+                        query: query,
+                        useLegacySql: false
+                    }
+                });
+
+                rows = response.data.rows || [];
+                usedBigQuery = true;
+                console.log('BigQuery rows returned:', rows.length);
+            } catch (bqError) {
+                console.warn('BigQuery query failed, falling back to GA4 Data API:', bqError.message);
             }
-        });
+        }
 
-        const rows = response.data.rows || [];
-        console.log('Rows returned:', rows.length);
+        // Fallback to GA4 Data API if BigQuery not used or failed
+        if (!usedBigQuery) {
+            console.log('Using GA4 Data API for traffic source data');
+            const analyticsData = google.analyticsdata({ version: 'v1beta', auth: authClient });
+            const propertyRef = `properties/${propertyId}`;
+            const dateRanges = [{ startDate, endDate }];
+
+            try {
+                const trafficResponse = await analyticsData.properties.runReport({
+                    property: propertyRef,
+                    dateRanges,
+                    dimensions: [
+                        { name: 'sessionSource' },
+                        { name: 'sessionMedium' },
+                        { name: 'landingPage' }
+                    ],
+                    metrics: [{ name: 'sessions' }],
+                    limit: 100
+                });
+
+                // Convert GA4 Data API format to BigQuery-like format
+                rows = (trafficResponse.data.rows || []).map(row => ({
+                    f: [
+                        { v: row.dimensionValues[0].value }, // source
+                        { v: row.dimensionValues[1].value }, // medium
+                        { v: row.dimensionValues[2].value }, // landing_page
+                        { v: row.metricValues[0].value }     // session_count
+                    ]
+                }));
+                console.log('GA4 Data API rows returned:', rows.length);
+            } catch (ga4Error) {
+                console.error('GA4 Data API also failed:', ga4Error.message);
+            }
+        }
 
         // Fetch Demographics & Revenue via GA4 Data API (Parallel)
         const analyticsData = google.analyticsdata({ version: 'v1beta', auth: authClient });
