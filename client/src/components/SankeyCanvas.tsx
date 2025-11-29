@@ -345,7 +345,7 @@ export const SankeyCanvas: React.FC<SankeyCanvasProps> = ({ data, loading, prope
 
     // Input Handlers
     const handleWheel = (e: React.WheelEvent) => {
-        e.preventDefault();
+        // Passive event listener - prevent doesn't work, use touchAction CSS instead
         const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
         const newZoom = Math.max(0.5, Math.min(3, camera.zoom * zoomFactor));
 
@@ -489,6 +489,7 @@ export const SankeyCanvas: React.FC<SankeyCanvasProps> = ({ data, loading, prope
                 onMouseLeave={() => setIsDragging(false)}
                 onMouseMove={handleMouseMove}
                 onWheel={handleWheel}
+                style={{ touchAction: 'none' }}
             />
 
             {loading && <div className="loading-overlay"><div className="spinner"></div></div>}

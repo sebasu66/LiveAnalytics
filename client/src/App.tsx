@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { KeyUpload } from './components/KeyUpload';
 import { PropertySelector } from './components/PropertySelector';
@@ -17,8 +17,19 @@ interface AuthData {
 }
 
 interface GraphData {
-  nodes: Array<{ id: string; type: string; label: string; value: number }>;
+  nodes: Array<{ id: string; type: string; label: string; sessions: number; layer?: number; details?: any[] }>;
   edges: Array<{ source: string; target: string; value: number }>;
+  dateRange?: {
+    startDate: string;
+    endDate: string;
+  };
+  demographics?: {
+    age: Array<{ name: string; value: number }>;
+    gender: Array<{ name: string; value: number }>;
+    geo: Array<{ name: string; value: number }>;
+    device: Array<{ name: string; value: number }>;
+  };
+  estimatedSales?: number;
 }
 
 type AppStep = 'upload' | 'select' | 'dashboard';
@@ -67,9 +78,11 @@ function App() {
     setStep('select');
   };
 
-  const handlePropertySelect = async (propertyId: string, datasetId: string) => {
+  const handlePropertySelect = useCallback(async (propertyId: string, datasetId: string) => {
+    console.log('[Frontend] handlePropertySelect called with:', { propertyId, datasetId });
     setSelectedProperty(propertyId);
     setSelectedDataset(datasetId);
+    console.log('[Frontend] Changing step to dashboard');
     setStep('dashboard');
     setLoading(true);
 
@@ -78,7 +91,7 @@ function App() {
       const endDate = new Date();
       endDate.setDate(endDate.getDate() - 1); // Yesterday
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
+      startDate.setDate(startDate.getDate() - 90);
 
       const response = await axios.post('/api/start-historical-job', {
         token: authData?.token,
@@ -88,8 +101,12 @@ function App() {
         endDate: endDate.toISOString().split('T')[0]
       });
 
+      console.log('[Frontend] Historical job response:', response.data);
       if (response.data.status === 'completed') {
+        console.log('[Frontend] Setting graph data:', response.data.data);
         setGraphData(response.data.data);
+      } else {
+        console.warn('[Frontend] Unexpected status:', response.data.status);
       }
     } catch (error: any) {
       console.error('Failed to load historical data:', error);
@@ -97,7 +114,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authData?.token]);
 
   const handleReset = () => {
     setStep('upload');
@@ -120,10 +137,13 @@ function App() {
       const { defaultPropertyId, defaultDataset } = authData.debugConfig;
       if (defaultPropertyId && defaultDataset) {
         console.log('🔧 Debug Mode: Auto-starting historical job...');
+        console.log('  Property ID:', defaultPropertyId);
+        console.log('  Dataset:', defaultDataset);
+        console.log('  Current step:', step);
         handlePropertySelect(defaultPropertyId, defaultDataset);
       }
     }
-  }, [debugMode, authData, step]);
+  }, [debugMode, authData, step, handlePropertySelect]);
 
   return (
     <div className="app-container">
@@ -142,7 +162,7 @@ function App() {
       {step === 'dashboard' && (
         <>
           <div className="dashboard-header">
-            <h1>Navigation Flow Visualizer</h1>
+            <h1>{getPropertyName()}</h1>
             <div className="header-info">
               {debugMode && <span className="debug-badge">🔧 DEBUG MODE</span>}
               <span>Property: {selectedProperty}</span>
@@ -164,4 +184,3 @@ function App() {
 }
 
 export default App;
-

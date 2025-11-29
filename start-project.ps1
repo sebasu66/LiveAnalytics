@@ -1,19 +1,49 @@
 param(
-    [switch]$Debug
+    [switch]$Debug,
+    [switch]$NoDebug
 )
 
 # Toggle Debug Mode in config
 $configPath = "debug.config.json"
-$debugEnabled = $Debug.IsPresent
+
+# Determine debug state
+$debugEnabled = $false
+if ($Debug.IsPresent) {
+    $debugEnabled = $true
+} elseif (-not $NoDebug.IsPresent) {
+    # Auto-detect: enable debug if key file exists and is configured
+    if (Test-Path $configPath) {
+        $config = Get-Content $configPath -Raw | ConvertFrom-Json
+        $keyFile = $config.defaultKeyFile
+        if ($keyFile -and (Test-Path $keyFile)) {
+            $debugEnabled = $true
+        }
+    }
+}
+
+# Read/Create config
 if (Test-Path $configPath) {
     $config = Get-Content $configPath -Raw | ConvertFrom-Json
 } else {
-    $config = @{}
+    $config = @{
+        debugMode = $debugEnabled
+        autoLoadKey = $debugEnabled
+        defaultKeyFile = "bigquerypatagonia-cab338490f70.json"
+        defaultPropertyId = "407838284"
+        defaultDataset = "analytics_407838284"
+    }
 }
+
+# Update debug settings
 $config.debugMode = $debugEnabled
-$config.autoLoadKey = $debugEnabled  # Also toggle auto-load
+$config.autoLoadKey = $debugEnabled
 $config | ConvertTo-Json -Depth 10 | Set-Content $configPath
-if ($debugEnabled) { Write-Host "[Debug] Debug mode: ENABLED" -ForegroundColor Green } else { Write-Host "[Debug] Debug mode: DISABLED" -ForegroundColor Gray }
+
+if ($debugEnabled) { 
+    Write-Host "[Debug] Debug mode: ENABLED (auto-login enabled)" -ForegroundColor Green 
+} else { 
+    Write-Host "[Debug] Debug mode: DISABLED (manual key upload required)" -ForegroundColor Gray 
+}
 
 # Start Live Analytics Project (Backend + Frontend)
 # Run: .\start-project.ps1

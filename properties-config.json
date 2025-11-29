@@ -1,13 +1,13 @@
 {
-    "properties": [
-        {
-            "id": "407838284",
-            "name": "Main E-commerce Site",
-            "domain": "example.com",
-            "bigQueryDataset": "analytics_407838284",
-            "bigQueryProjectId": "bigquerypatagonia",
-            "serviceAccountKeyFile": "bigquerypatagonia-serviceAccountKey.json",
-            "enabled": true
-        }
-    ]
+  "properties": [
+    {
+      "id": "407838284",
+      "name": "Main E-commerce Site",
+      "domain": "example.com",
+      "bigQueryDataset": "analytics_407838284",
+      "bigQueryProjectId": "bigquerypatagonia",
+      "serviceAccountKeyFile": "bigquerypatagonia-cab338490f70.json",
+      "enabled": true
+    }
+  ]
 }
