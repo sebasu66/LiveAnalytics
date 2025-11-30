@@ -4,5 +4,7 @@ node_modules/
 error.log
 .DS_Store
 *.serviceAccountKey.json
+bigquerypatagonia-cab338490f70.json
+anandaadvisor-serviceAccount-key.json
 properties-config.json
 debug.config.json
